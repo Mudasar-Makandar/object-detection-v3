@@ -29,11 +29,18 @@
     <div class="row">
         <div class="col-xs-6">
           <h3>Original Image</h3>
-          <img src="" id="img" width="300" height="300"/>
+          <img src="" id="img" width="300" height="300" style="border:1px solid #000000;"/>
         </div>
-        <div class="col-xs-6" id="results">
-          <h3>Results</h3>
+        <div class="col-xs-6">
+          <h3>Updated Image</h3>
+          <canvas id="canvas" width="300" height="300" style="border:1px solid #000000;"></canvas>
         </div>
+    </div>
+
+  </div>
+  <div class="container">
+    <div class="col-xs-6" id="results">
+      <h3>Results</h3>
     </div>
 
   </div>
@@ -53,6 +60,7 @@
           document.getElementById("results").innerHTML = "<h3>Results</h3>";
           imgElement.onload=function(){
             let image = cv.imread(imgElement);
+            let updated_img =  cv.imread(imgElement);
             let ksize = new cv.Size(3, 3);
             const lowThresh = 30;
             const highThresh = 200;
@@ -62,14 +70,12 @@
             let anchor = new cv.Point(-1, -1);
             let contours = new cv.MatVector();
             let hierarchy = new cv.Mat();
-            var real_x = 300;
-            var real_y = 300;
-            var real_w = 0;
-            var real_h = 0;
+            var real_x = [];
+            var real_y = [];
+            var real_w = [];
+            var real_h = [];
 
-            var st = new Date()
-            var st_sec = st.getSeconds()
-            var st_ms = st.getMilliseconds()
+            var t0 = performance.now()
             cv.cvtColor(image, image, cv.COLOR_RGBA2GRAY);
             cv.GaussianBlur(image, image, ksize, 0, 0, cv.BORDER_DEFAULT);
 
@@ -83,54 +89,33 @@
 
             for (let i = 0; i < contours.size(); i++) {
               rect = cv.boundingRect(contours.get(i))
-              if (rect.x < real_x) {
-                real_x = rect.x;
-              }
-              if (rect.y < real_y) {
-                real_y = rect.y;
-              }
-              if (rect.width > real_w) {
-                real_w = rect.width
-              }
-              if (rect.height > real_h) {
-                real_h = rect.height
-              }
+              real_x.push(rect.x);
+              real_y.push(rect.y);
+              real_w.push(rect.width);
+              real_h.push(rect.height);
             }
-
-            var sp = new Date()
-            var w_ratio = parseFloat(real_w/w).toFixed(4);
-            var h_ratio = parseFloat(real_h/h).toFixed(4);
+            var t1 = performance.now()
+            var w_ratio = parseFloat(Math.max.apply(null,real_w)/w).toFixed(4);
+            var h_ratio = parseFloat(Math.max.apply(null,real_h)/h).toFixed(4);
             var para = document.createElement("h5");
             var para2 = document.createElement("h5");
             var para3 = document.createElement("h5");                       // Create a <p> node
             var t = document.createTextNode("Width ratio :"+w_ratio);
             var t2 = document.createTextNode("Height ratio :"+h_ratio);
-            var t3 = document.createTextNode("Time :"+h_ratio);   // Create a text node
+            cv.rectangle(updated_img, new cv.Point(Math.min.apply(null,real_x), Math.min.apply(null,real_y)), new cv.Point(Math.min.apply(null,real_x)+Math.max.apply(null,real_w), Math.min.apply(null,real_y)+Math.max.apply(null,real_h)), new cv.Scalar(255,0,0), 2,cv.LINE_AA, 0)
+            cv.rectangle(updated_img, new cv.Point(0,0), new cv.Point(300,300), new cv.Scalar(255,0,0), 2,cv.LINE_AA)
+            cv.imshow("canvas", updated_img)
             para.appendChild(t);
             para2.appendChild(t2);
-            if (sp.getMilliseconds()-st_ms <= 0) {
-              var t3 = document.createTextNode("Computation Time: "+(sp.getSeconds()-st_sec-1).toString()+" seconds, "+Math.abs(sp.getMilliseconds()+1000-st_ms).toString()+" milliseconds")
-              para3.appendChild(t3);
-            }
-
-            else {
-              var t3 = document.createTextNode("Computation Time: "+(sp.getSeconds()-st_sec).toString()+" seconds, "+(sp.getMilliseconds()-st_ms).toString()+" milliseconds")
-              para3.appendChild(t3);
-            }                                     // Append the text to <p>
+            var t3 = document.createTextNode("Computation Time: "+(t1-t0)+" milliseconds")
+            para3.appendChild(t3);
+                                            // Append the text to <p>
             document.getElementById("results").appendChild(para);
-              document.getElementById("results").appendChild(para2)
-                document.getElementById("results").appendChild(para3)
+            document.getElementById("results").appendChild(para2)
+            document.getElementById("results").appendChild(para3)
             console.log("width ratio :",w_ratio)
             console.log("height ratio: ",h_ratio)
-
-            if (sp.getMilliseconds()-st_ms <= 0) {
-              console.log("Computation Time: "+(sp.getSeconds()-st_sec-1).toString()+" seconds, "+Math.abs(sp.getMilliseconds()+1000-st_ms).toString()+" milliseconds")
-
-            }
-
-            else {
-              console.log("Computation Time: "+(sp.getSeconds()-st_sec).toString()+" seconds, "+(sp.getMilliseconds()-st_ms).toString()+" milliseconds")
-            }
+            console.log("Computation Time: "+(t1-t0)+" milliseconds")
             }
           }
 
