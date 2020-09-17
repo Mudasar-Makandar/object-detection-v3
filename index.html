@@ -95,8 +95,10 @@
               real_h.push(rect.y+rect.height);
             }
             var t1 = performance.now();
-            var w_ratio = parseFloat(Math.max.apply(null,real_w)/w).toFixed(4);
-            var h_ratio = parseFloat(Math.max.apply(null,real_h)/h).toFixed(4);
+            var obj_w = Math.max.apply(null,real_w)- Math.min.apply(null,real_x);
+            var obj_h = Math.max.apply(null,real_h)- Math.min.apply(null,real_y);
+            var w_ratio = parseFloat(obj_w/w).toFixed(4);
+            var h_ratio = parseFloat(obj_h/h).toFixed(4);
             var para = document.createElement("h5");
             var para2 = document.createElement("h5");
             var para3 = document.createElement("h5");                       // Create a <p> node
