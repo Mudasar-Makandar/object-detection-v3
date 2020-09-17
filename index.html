@@ -50,7 +50,7 @@
     <script>
 
         function loaded(){
-          console.log("Loaded Opencv JS")
+          console.log("Loaded Opencv JS");
 
         }
 
@@ -75,7 +75,7 @@
             var real_w = [];
             var real_h = [];
 
-            var t0 = performance.now()
+            var t0 = performance.now();
             cv.cvtColor(image, image, cv.COLOR_RGBA2GRAY);
             cv.GaussianBlur(image, image, ksize, 0, 0, cv.BORDER_DEFAULT);
 
@@ -88,13 +88,13 @@
             cv.findContours(image, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
 
             for (let i = 0; i < contours.size(); i++) {
-              rect = cv.boundingRect(contours.get(i))
+              rect = cv.boundingRect(contours.get(i));
               real_x.push(rect.x);
               real_y.push(rect.y);
-              real_w.push(rect.width);
-              real_h.push(rect.height);
+              real_w.push(rect.x+rect.width);
+              real_h.push(rect.y+rect.height);
             }
-            var t1 = performance.now()
+            var t1 = performance.now();
             var w_ratio = parseFloat(Math.max.apply(null,real_w)/w).toFixed(4);
             var h_ratio = parseFloat(Math.max.apply(null,real_h)/h).toFixed(4);
             var para = document.createElement("h5");
@@ -102,20 +102,21 @@
             var para3 = document.createElement("h5");                       // Create a <p> node
             var t = document.createTextNode("Width ratio :"+w_ratio);
             var t2 = document.createTextNode("Height ratio :"+h_ratio);
-            cv.rectangle(updated_img, new cv.Point(Math.min.apply(null,real_x), Math.min.apply(null,real_y)), new cv.Point(Math.min.apply(null,real_x)+Math.max.apply(null,real_w), Math.min.apply(null,real_y)+Math.max.apply(null,real_h)), new cv.Scalar(255,0,0), 2,cv.LINE_AA, 0)
+            //cv.rectangle(updated_img, new cv.Point(Math.min.apply(null,real_x), Math.min.apply(null,real_y)), new cv.Point(Math.min.apply(null,real_x)+Math.max.apply(null,real_w), Math.min.apply(null,real_y)+Math.max.apply(null,real_h)), new cv.Scalar(255,0,0), 2,cv.LINE_AA, 0)
+            cv.rectangle(updated_img, new cv.Point(Math.min.apply(null,real_x), Math.min.apply(null,real_y)), new cv.Point(Math.max.apply(null,real_w), Math.max.apply(null,real_h)), new cv.Scalar(0,0,255, 255),2,cv.LINE_AA)
             cv.rectangle(updated_img, new cv.Point(0,0), new cv.Point(300,300), new cv.Scalar(255,0,0), 2,cv.LINE_AA)
-            cv.imshow("canvas", updated_img)
+            cv.imshow("canvas", updated_img);
             para.appendChild(t);
             para2.appendChild(t2);
-            var t3 = document.createTextNode("Computation Time: "+(t1-t0)+" milliseconds")
+            var t3 = document.createTextNode("Computation Time: "+(t1-t0)+" milliseconds");
             para3.appendChild(t3);
                                             // Append the text to <p>
             document.getElementById("results").appendChild(para);
-            document.getElementById("results").appendChild(para2)
-            document.getElementById("results").appendChild(para3)
-            console.log("width ratio :",w_ratio)
-            console.log("height ratio: ",h_ratio)
-            console.log("Computation Time: "+(t1-t0)+" milliseconds")
+            document.getElementById("results").appendChild(para2);
+            document.getElementById("results").appendChild(para3);
+            console.log("width ratio :",w_ratio);
+            console.log("height ratio: ",h_ratio);
+            console.log("Computation Time: "+(t1-t0)+" milliseconds");
             }
           }
 
