@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenCv</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <script async src="opencv.js" onload="loaded()" type="text/javascript"></script>
+</head>
+<body>
+    <nav class="navbar navbar-light bg-dark">
+      <a class="navbar-brand" href="#" id="text-nav">
+        Object Detection
+      </a>
+    </nav>
+    <form id="form">
+    <div class="form-group">
+      <label for="exampleInputEmail1">Image File</label>
+      <input type="file" class="form-control" id="img_file" aria-describedby="Image" onchange="loadFile(event)" required>
+    </div>
+
+  </form>
+
+  <div class="container">
+    <div class="row">
+        <div class="col-xs-6">
+          <h3>Original Image</h3>
+          <img src="" id="img" width="300" height="300"/>
+        </div>
+        <div class="col-xs-6">
+          <h3>Output Image</h3>
+          <canvas id="canvas" width="300" height="300"></canvas>
+          <canvas id="imageCanvas" ></canvas>
+        </div>
+    </div>
+
+  </div>
+
+
+</body>
+    <script>
+
+        function loaded(){
+          console.log("Loaded Opencv JS")
+
+        }
+
+        var loadFile = function(event) {
+
+          var c = document.getElementById("canvas");
+          var ctx = c.getContext("2d");
+          var imgElement = document.getElementById("img");
+          imgElement.src = URL.createObjectURL(event.target.files[0]);
+
+          imgElement.onload=function(){
+            let image = cv.imread(imgElement);
+            let ksize = new cv.Size(3, 3);
+            const lowThresh = 30;
+            const highThresh = 200;
+            let h = image.size().height
+            let w = image.size().width
+            let M = cv.Mat.ones(3, 3, cv.CV_8U);
+            let anchor = new cv.Point(-1, -1);
+            let contours = new cv.MatVector();
+            let hierarchy = new cv.Mat();
+            var real_x = 300;
+            var real_y = 300;
+            var real_w = 0;
+            var real_h = 0;
+
+            var st = new Date()
+            var st_sec = st.getSeconds()
+            var st_ms = st.getMilliseconds()
+            cv.cvtColor(image, image, cv.COLOR_RGBA2GRAY);
+            cv.GaussianBlur(image, image, ksize, 0, 0, cv.BORDER_DEFAULT);
+
+
+            cv.Canny(image, image, lowThresh, highThresh, 3, false);
+
+            cv.dilate(image, image, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+
+
+            cv.findContours(image, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+
+            for (let i = 0; i < contours.size(); i++) {
+              rect = cv.boundingRect(contours.get(i))
+              if (rect.x < real_x) {
+                real_x = rect.x;
+              }
+              if (rect.y < real_y) {
+                real_y = rect.y;
+              }
+              if (rect.width > real_w) {
+                real_w = rect.width
+              }
+              if (rect.height > real_h) {
+                real_h = rect.height
+              }
+            }
+
+            var sp = new Date()
+            var w_ratio = parseFloat(real_w/w);
+            var h_ratio = parseFloat(real_h/h);
+            console.log("width ratio :",w_ratio)
+            console.log("height ratio: ",h_ratio)
+
+            if (sp.getMilliseconds()-st_ms <= 0) {
+              console.log("Computation Time: "+(sp.getSeconds()-st_sec-1).toString()+" seconds, "+Math.abs(sp.getMilliseconds()+1000-st_ms).toString()+" milliseconds")
+
+            }
+
+            else {
+              console.log("Computation Time: "+(sp.getSeconds()-st_sec).toString()+" seconds, "+(sp.getMilliseconds()-st_ms).toString()+" milliseconds")
+            }
+            }
+          }
+
+    </script>
+</html>
